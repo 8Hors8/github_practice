@@ -1,25 +1,52 @@
+"""
+    Основной файл для запуска Telegram-бота.
+    Запускает бот и инициализирует обработчики.
+"""
+import logging
 import telebot
-import os
-from dotenv import load_dotenv
 
+from handlers import Handlers
+from config import TELEBOT_TOKEN, config_logging
+from time import sleep
 
-# load_dotenv(dotenv_path='./token.env')
-#
-# api_token = os.getenv('BOT_API_TOKEN')
+logger = logging.getLogger('main')
+
 
 class Bot_star:
-    def __init__(self, path):
-        load_dotenv(dotenv_path=path)
+    """
+        Класс для управления запуском и работой Telegram-бота.
 
-        api_token = os.getenv('BOT_API_TOKEN')
+        Attributes:
+            bot (telebot.TeleBot): Объект бота для взаимодействия с Telegram API.
+            handlers (Handlers): Обработчик для работы с командами бота.
+    """
+    def __init__(self, api_token):
+        """
+            Инициализация бота и обработчиков.
+
+            :param api_token (str): Токен API для подключения к Telegram.
+        """
 
         self.bot = telebot.TeleBot(api_token)
+        self.handlers = Handlers(self.bot)
 
-    def bot_polling(self):
-        self.bot.polling()
+    def run(self):
+        """
+            Запуск бота и обработка сообщений.
+            В случае ошибки повторяет попытку подключения.
+        """
+        config_logging()
+        logger.info('Запуск бота')
+        while True:
+            try:
+                logger.info('Попытка подключения к Telegram...')
+                self.bot.polling(none_stop=True)
+
+            except Exception as e:
+                logger.error(f'{e}')
+                sleep(10)
 
 
 if __name__ == '__main__':
-    print('Bot star')
-    bot = Bot_star('./token.env')
-    bot.bot_polling()
+    bot = Bot_star(TELEBOT_TOKEN)
+    bot.run()
