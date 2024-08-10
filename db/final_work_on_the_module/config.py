@@ -18,7 +18,7 @@ TELEBOT_TOKEN = os.getenv('BOT_API_TOKEN')
 def config_logging(level=logging.INFO):
     """
         Настройка логирования для приложения.
-        :param level (int): Уровень логирования. По умолчанию - INFO.
+        :param level: Уровень логирования. По умолчанию - INFO.
     """
     logging.basicConfig(
         level=level,

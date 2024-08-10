@@ -20,6 +20,7 @@ class Bot_star:
             bot (telebot.TeleBot): Объект бота для взаимодействия с Telegram API.
             handlers (Handlers): Обработчик для работы с командами бота.
     """
+
     def __init__(self, api_token):
         """
             Инициализация бота и обработчиков.
