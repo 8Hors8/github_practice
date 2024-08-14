@@ -1,3 +1,8 @@
+"""
+    Этот модуль содержит утилиты для игрового процесса и взаимодействия с базой данных.
+    Включает классы для управления игровым процессом и базой данных, а также функции
+    для работы с пользователями и словами.
+"""
 import logging
 from database import Database
 from config import config_logging
@@ -49,18 +54,15 @@ class GameUtils:
         :param message: Объект Telegram-бота для отправки сообщений.
         """
         chat_id = message.chat.id
-        # Пример слова и вариантов перевода
         word = "Мир"
         text_buttons = ["Tree", "Book", "vata"]
         correct_translation = "World"
         text_buttons.append(correct_translation)
 
-        # Формирование кнопок с вариантами перевода
         markup = translation_buttons(text_buttons)
 
-        # Отправляем слово и варианты перевода
         self.bot.send_message(chat_id, f"Как перевести слово '<b>{word}</b>'?",
-                              reply_markup=markup,parse_mode="HTML")
+                              reply_markup=markup, parse_mode="HTML")
         self.bot.register_next_step_handler_by_chat_id(chat_id, self.check_answer, correct_translation)
 
     def check_answer(self, message, correct_translation):
@@ -86,7 +88,39 @@ class DatabaseUtils(Database):
         super().__init__()
 
     def add_tabl(self):
-        logger.info(f'Таблицы созданы')
+        """
+           Создает необходимые таблицы в базе данных:
+           - users: информация о пользователях.
+           - word: информация о словах и их переводах.
+           - users_word: связь пользователей и слов, а также количество показов каждого слова.
+       """
+        table_name_user = 'users'
+        columns_user = [
+            ('id', 'SERIAL PRIMARY KEY'),
+            ('telegram_user_id', 'BIGINT NOT NULL UNIQUE'),
+            ('name', 'VARCHAR(255)'),
+            ('points', 'INTEGER DEFAULT 0')
+        ]
+
+        table_name_word = 'word'
+        columns_word = [
+            ('id', 'SERIAL PRIMARY KEY'),
+            ('russian_words', 'VARCHAR(255)'),
+            ('translation', 'VARCHAR(255)'),
+
+        ]
+
+        table_name_user_word = 'users_word'
+        columns_user_word = [
+            ('id', 'SERIAL PRIMARY KEY'),
+            ('user_id', 'INTEGER REFERENCES users(id) ON DELETE CASCADE'),
+            ('word_id', 'INTEGER REFERENCES word(id) ON DELETE CASCADE'),
+            ('times_shown', 'INTEGER DEFAULT 0')
+        ]
+
+        self.create_table(table_name_user, columns_user)
+        self.create_table(table_name_word, columns_word)
+        self.create_table(table_name_user_word, columns_user_word)
 
     def seve_user(self, name):
         logger.info(f'Пользователь с именем {name} попал в базу')
@@ -94,3 +128,4 @@ class DatabaseUtils(Database):
 
 if __name__ == '__main__':
     r = DatabaseUtils()
+    r.add_tabl()

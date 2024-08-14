@@ -41,7 +41,7 @@ class Database:
         if self.conn:
             self.conn.close()
 
-    def create_table(self, table_name: str, columns: list):
+    def create_table(self, table_name: str, columns: list|tuple):
         """
         Создание таблицы в базе данных.
 
