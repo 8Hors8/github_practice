@@ -2,8 +2,9 @@
     Модуль для обработки команд и сообщений Telegram-бота.
     Содержит классы и функции для взаимодействия с пользователями.
 """
-import bot_msg, btn_text
+import bot_msg, btn_text, utils
 from buttons import start_button
+from utils import GameUtils
 
 
 class Handlers:
@@ -25,6 +26,7 @@ class Handlers:
         """
         self.bot = bot
         self.setup_handlers()
+        self.game_utils = GameUtils(self.bot)
 
     def setup_handlers(self):
         """
@@ -39,9 +41,10 @@ class Handlers:
         def help(message):
             self.handle_help(message)
 
+        # обработчик кнопки btn_text.BTN_STAR_GEME
         @self.bot.message_handler(func=lambda message: message.text == btn_text.BTN_STAR_GEME)
         def start_geme(message):
-            self.handle_start_geme(message)
+            self.game_utils.get_user_name(message)
 
     def handle_start(self, message):
         """
@@ -50,7 +53,8 @@ class Handlers:
             :param message : (telebot.types.Message) Сообщение от пользователя.
         """
         chat_id = message.chat.id
-        self.bot.send_message(chat_id, bot_msg.MSG_START, reply_markup=start_button())
+        self.bot.send_message(chat_id, bot_msg.MSG_START,
+                              reply_markup=start_button(), parse_mode="HTML")
 
     def handle_help(self, message):
         """
@@ -61,12 +65,4 @@ class Handlers:
         chat_id = message.chat.id
         self.bot.send_message(chat_id, bot_msg.MSG_HELP)
 
-    def handle_start_geme(self, message):
-        """
-          Обработка кнопки BTN_STAR_GEME. Регистрирует пользователя
-          в базе данных и отправляет приветственное сообщение.
 
-          :param message : (telebot.types.Message) Сообщение от пользователя.
-        """
-        chat_id = message.chat.id
-        self.bot.send_message(chat_id, 'Да начнется игра')

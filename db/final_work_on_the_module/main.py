@@ -7,8 +7,10 @@ import telebot
 
 from handlers import Handlers
 from config import TELEBOT_TOKEN, config_logging
+from utils import DatabaseUtils
 from time import sleep
 
+config_logging()
 logger = logging.getLogger('main')
 
 
@@ -36,15 +38,16 @@ class Bot_star:
             Запуск бота и обработка сообщений.
             В случае ошибки повторяет попытку подключения.
         """
-        config_logging()
+
         logger.info('Запуск бота')
+        DatabaseUtils().add_tabl()
         while True:
             try:
                 logger.info('Попытка подключения к Telegram...')
                 self.bot.polling(none_stop=True)
 
             except Exception as e:
-                logger.error(f'{e}')
+                logger.error(f'{e}', exc_info=True)
                 sleep(10)
 
 
