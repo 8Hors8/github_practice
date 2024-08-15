@@ -14,7 +14,11 @@ config_logging()
 
 class GameUtils:
     """
-          Класс с утилитами для игрового процесса.
+        Класс с утилитами для игрового процесса.
+
+        Attributes:
+            bot (telebot.TeleBot): Объект Telegram-бота для взаимодействия с Telegram API.
+            db (DatabaseUtils): Объект для взаимодействия с базой данных.
     """
 
     def __init__(self, bot):
@@ -25,12 +29,17 @@ class GameUtils:
         """
         Запрашивает имя пользователя и сохраняет его в базе данных.
 
-        :param bot: Объект Telegram-бота для отправки сообщений.
         :param message: Сообщение от пользователя, содержащее его имя.
         """
         chat_id = message.chat.id
-        self.bot.send_message(chat_id, 'Как я могу к вам обращаться?')
-        self.bot.register_next_step_handler(message, self.save_user_name)
+        user_id = message.from_user.id
+        user_info = self.db.search_user(user_id)
+        if user_info is None:
+            self.bot.send_message(chat_id, 'Как я могу к вам обращаться?')
+            self.bot.register_next_step_handler(message, self.save_user_name)
+        else:
+            self.bot.send_message(chat_id, 'Игра продолжается!!')
+            self.start_game(message)
 
     def save_user_name(self, message):
         """
@@ -39,10 +48,10 @@ class GameUtils:
         :param message: Сообщение от пользователя, содержащее его имя.
         """
         chat_id = message.chat.id
-        print(message.from_user.id)
+        user_id = message.from_user.id
         user_name = message.text
 
-        self.db.seve_user(user_name)
+        self.db.save_user(user_name, user_id)
 
         self.bot.send_message(chat_id, f"Приятно познакомиться, {user_name}!\n Да начнется игра!!")
         self.start_game(message)
@@ -63,7 +72,8 @@ class GameUtils:
 
         self.bot.send_message(chat_id, f"Как перевести слово '<b>{word}</b>'?",
                               reply_markup=markup, parse_mode="HTML")
-        self.bot.register_next_step_handler_by_chat_id(chat_id, self.check_answer, correct_translation)
+        self.bot.register_next_step_handler_by_chat_id(chat_id, self.check_answer,
+                                                       correct_translation)
 
     def check_answer(self, message, correct_translation):
         """
@@ -84,6 +94,10 @@ class GameUtils:
 
 
 class DatabaseUtils(Database):
+    """
+       Класс для управления базой данных, наследующий методы и свойства из класса Database.
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -122,10 +136,40 @@ class DatabaseUtils(Database):
         self.create_table(table_name_word, columns_word)
         self.create_table(table_name_user_word, columns_user_word)
 
-    def seve_user(self, name):
-        logger.info(f'Пользователь с именем {name} попал в базу')
+    def save_user(self, name, tg_user_id):
+        """
+        :param name: имя пользователя который укажет пользователь
+        :param tg_user_id: id пользователя в телеграм
+        """
+        table_name = 'users'
+        data = {
+            'telegram_user_id': tg_user_id,
+            'name': name
+        }
+        self.insert_data(table_name=table_name, data=data)
+
+    def search_user(self, tg_user_id):
+        """
+        Поиск пользователей в бд
+        :param tg_user_id: id пользователя в телеграм
+        """
+        table_name = 'users'
+        columns = 'id,name,points'
+        values = (tg_user_id,)
+        condition = 'telegram_user_id = %s'
+        result = self.select_data(table_name=table_name, columns=columns,
+                                  values=values, condition=condition)
+        if result:
+            user_info = {
+                'id': result[0][0],
+                'name': result[0][1],
+                'points': result[0][2]
+            }
+        else:
+            user_info = None
+        return user_info
 
 
 if __name__ == '__main__':
     r = DatabaseUtils()
-    r.add_tabl()
+    print(r.search_user(6585634713))

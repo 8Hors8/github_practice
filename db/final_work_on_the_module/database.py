@@ -41,7 +41,7 @@ class Database:
         if self.conn:
             self.conn.close()
 
-    def create_table(self, table_name: str, columns: list|tuple):
+    def create_table(self, table_name: str, columns: list | tuple):
         """
         Создание таблицы в базе данных.
 
@@ -72,7 +72,7 @@ class Database:
         except psycopg2.DatabaseError as e:
             print(f"Ошибка при удалении таблицы {table_name}: {e}")
 
-    def insert_data(self, table_name, data):
+    def insert_data(self, table_name, data: dict):
         """
         Вставка данных в таблицу.
 
@@ -95,6 +95,28 @@ class Database:
         except psycopg2.DatabaseError as e:
             print(f"Ошибка при вставке данных в таблицу {table_name}: {e}")
             return None
+
+    def select_data(self, table_name, columns: str = '*', condition=None, values=None):
+        """
+        Выполнение SELECT-запроса.
+
+        :param table_name: Имя таблицы.
+        :param columns: Список столбцов для выборки, по умолчанию '*' - все столбцы.
+        :param condition: Условие WHERE для фильтрации данных, строка SQL.
+        :param values: Значения для подстановки в условие WHERE, кортеж.
+        :return: Список кортежей с данными.
+        """
+        try:
+            columns_str = ', '.join(columns) if isinstance(columns, list) else columns
+            query = sql.SQL(f"SELECT {columns_str} FROM {table_name}")
+            if condition:
+                query += sql.SQL(f" WHERE {condition}")
+            self.cur.execute(query, values)
+            rows = self.cur.fetchall()
+            return rows
+        except psycopg2.DatabaseError as e:
+            print(f"Ошибка при выполнении SELECT из таблицы {table_name}: {e}")
+            return []
 
 
 if __name__ == '__main__':
