@@ -72,7 +72,7 @@ class Database:
         except psycopg2.DatabaseError as e:
             print(f"Ошибка при удалении таблицы {table_name}: {e}")
 
-    def insert_data(self, table_name, data: dict):
+    def insert_data(self, table_name: str, data: dict):
         """
         Вставка данных в таблицу.
 
