@@ -96,7 +96,8 @@ class Database:
             print(f"Ошибка при вставке данных в таблицу {table_name}: {e}")
             return None
 
-    def select_data(self, table_name, columns: str = '*', condition=None, values=None):
+    def select_data(self, table_name, columns: str = '*',
+                    condition: str = None, values: tuple = None):
         """
         Выполнение SELECT-запроса.
 
@@ -117,6 +118,45 @@ class Database:
         except psycopg2.DatabaseError as e:
             print(f"Ошибка при выполнении SELECT из таблицы {table_name}: {e}")
             return []
+
+    def update_data(self, table_name: str, data: dict, condition: str, values: tuple = None):
+        """
+        Обновление данных в таблице.
+
+        :param table_name: Имя таблицы.
+        :param data: Словарь с данными для обновления
+        в формате {'column1': value1, 'column2': value2, ...}. Если value1 это строка,
+        которая содержит арифметическое выражение (например, "column + 1"),
+        то она будет использована напрямую в SQL-запросе.
+        :param condition: Условие WHERE для фильтрации записей, строка SQL.
+        :param values: Необязательный параметр. Значения для подстановки в условие WHERE, кортеж.
+        :return: True, если обновление прошло успешно, иначе False.
+        """
+        try:
+            set_clause = []
+            query_values = []
+
+            for column, value in data.items():
+                # Проверка на арифметическое выражение
+                if isinstance(value, str) and any(op in value for op in ['+', '-', '*', '/']):
+                    set_clause.append(f"{column} = {value}")
+                else:
+                    set_clause.append(f"{column} = %s")
+                    query_values.append(value)
+
+            query = sql.SQL(f"UPDATE {table_name} SET {', '.join(set_clause)} WHERE {condition}")
+
+            if values:
+                query_values.extend(values)
+
+
+            self.cur.execute(query, query_values)
+            self.conn.commit()
+            print(f'Обновление в таблице {table_name} прошло успешно')
+            return True
+        except psycopg2.DatabaseError as e:
+            print(f"Ошибка при обновлении данных в таблице {table_name}: {e}")
+            return False
 
 
 if __name__ == '__main__':

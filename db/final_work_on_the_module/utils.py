@@ -69,16 +69,16 @@ class GameUtils:
         word, correct_translation, text_buttons = self.word_generator(message)
 
         text_buttons.append(correct_translation)
-
+        id_word_db = self.db.search_word(word)
         markup = translation_buttons(text_buttons)
 
         self.bot.send_message(chat_id, f"Как перевести слово '<b>{word}</b>'?",
                               reply_markup=markup, parse_mode="HTML")
 
         self.bot.register_next_step_handler_by_chat_id(chat_id, self.check_answer,
-                                                       correct_translation)
+                                                       id_word_db, correct_translation)
 
-    def check_answer(self, message, correct_translation):
+    def check_answer(self, message, id_word, correct_translation):
         """
         Проверяет правильность ответа пользователя.
 
@@ -87,12 +87,16 @@ class GameUtils:
         """
         chat_id = message.chat.id
         user_answer = message.text
+        user_id = message.from_user.id
 
         if user_answer == correct_translation:
             self.bot.send_message(chat_id, "Превосходно! Вы справились! 🌟 +1 балл!")
+            self.db.update_points(user_id, 1)
+            self.db.update_times_shown(user_id,id_word)
             self.start_game(message)
         else:
             self.bot.send_message(chat_id, "Не совсем так. Но не отчаивайтесь! 💔 -3 балла!")
+            self.db.update_points(user_id, 3, add=False)
             self.start_game(message)
 
     def word_generator(self, message):
@@ -181,12 +185,12 @@ class GameUtils:
         :return: dict Словарь, содержащий русские слова в качестве ключей и их
                  английские переводы в качестве значений.
         """
-        rusult = self.db.get_random_words_for_user(user_id)
+        result = self.db.get_random_words_for_user(user_id)
 
-        if len(rusult) < 4:
-            csv_word = self.read_words_csv(user_id, 4 - len(rusult))
-            rusult.update(csv_word)
-        return rusult
+        if len(result) < 4:
+            csv_word = self.read_words_csv(user_id, 4 - len(result))
+            result.update(csv_word)
+        return result
 
 
 class DatabaseUtils(Database):
@@ -356,6 +360,60 @@ class DatabaseUtils(Database):
             words_dict[words[0]] = words[1]
 
         return words_dict
+
+    def update_points(self, user_id, points: int, add=True):
+        """
+            Обновляет количество очков пользователя.
+
+            :param user_id: ID пользователя, для которого обновляются очки.
+            :param points: Количество очков для добавления или вычитания.
+            :param add: Флаг, указывающий, добавлять (True) или вычитать (False) очки.
+        """
+        if add:
+            data = {'points': f'points + {points}'}
+        else:
+            data = {'points': f'points - {points}'}
+
+        table_name = 'users'
+        condition = f'users.telegram_user_id = {user_id}'
+        self.update_data(table_name=table_name, data=data, condition=condition)
+
+    def update_times_shown(self, telegram_user_id, word_id: int):
+        """
+        Обновляет количество показов слова для пользователя.
+
+        :param telegram_user_id: ID пользователя в Telegram.
+        :param word_id: ID слова.
+        """
+        table_name = 'users_word uw'
+        columns = 'uw.id'
+        condition = """ uw.word_id = %s
+                            AND uw.user_id = (
+                                SELECT u.id 
+                                FROM users AS u
+                                WHERE u.telegram_user_id = %s
+                            );
+                    """
+        values = (word_id, telegram_user_id)
+        user_word_id = self.select_data(table_name=table_name, columns=columns,
+                                        condition=condition, values=values)
+        if user_word_id:
+            data = {'times_shown': 'times_shown + 1'}
+            condition = 'id = %s'
+            values = (user_word_id[0][0],)
+            self.update_data(table_name=table_name[:-3], data=data,
+                             condition=condition, values=values)
+        else:
+            user_id = self.select_data(table_name='users', columns='id',
+                                       condition='telegram_user_id = %s',
+                                       values=(telegram_user_id,))
+
+            data = {
+                'user_id': user_id[0][0],
+                'word_id': word_id,
+                'times_shown': 1
+            }
+            self.insert_data(table_name='users_word', data=data)
 
 
 if __name__ == '__main__':
