@@ -6,16 +6,21 @@ import logging
 import os
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path='./token.env')
+logger = logging.getLogger('config')
 
-TELEBOT_TOKEN = os.getenv('BOT_API_TOKEN')
-dbname = os.getenv('dbname')
-dbuser = os.getenv('dbuser')
-password = os.getenv('password')
-DB_PATH = {'dbname': dbname,
-           'user': dbuser,
-           'password': password
-           }
+try:
+    load_dotenv(dotenv_path='./token.env')
+    TELEBOT_TOKEN = os.getenv('BOT_API_TOKEN')
+    dbname = os.getenv('dbname')
+    dbuser = os.getenv('dbuser')
+    password = os.getenv('password')
+    DB_PATH = {'dbname': dbname,
+               'user': dbuser,
+               'password': password
+               }
+except Exception as e:
+    print(f' Ошибка config {e}')
+    logger.error(f'Ошибка {e}')
 
 
 def config_logging(level=logging.INFO):
