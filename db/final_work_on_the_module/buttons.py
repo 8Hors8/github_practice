@@ -4,9 +4,9 @@
 """
 import random
 
-from keyboard import ReplyKeyboard, InlineKeyboard
+from keyboard import ReplyKeyboard
 from telebot import types
-from btn_text import BTN_STAR_GEME, VIEW_STATISTICS
+from btn_text import BTN_STAR_GEME, VIEW_RATING
 
 
 def start_button():
@@ -16,7 +16,7 @@ def start_button():
         :return:
             ReplyKeyboard: Объект клавиатуры .
     """
-    reply_keyboard = ReplyKeyboard(resize_keyboard=True, row_width=1)
+    reply_keyboard = ReplyKeyboard()
     reply_keyboard.add_button(types.KeyboardButton(BTN_STAR_GEME))
 
     return reply_keyboard.get_markup()
@@ -34,9 +34,9 @@ def translation_buttons(text_buttons: list):
 
         :return: Клавиатура с кнопками для выбора перевода слова и просмотра статистики.
     """
-    reply_keyboard = ReplyKeyboard(resize_keyboard=True, row_width=2)
+    reply_keyboard = ReplyKeyboard(row_width=2)
     random.shuffle(text_buttons)
     buttons = [types.KeyboardButton(word) for word in text_buttons]
-    buttons.append(types.KeyboardButton(VIEW_STATISTICS))
+    buttons.append(types.KeyboardButton(VIEW_RATING))
     reply_keyboard.add_button(*buttons)
     return reply_keyboard.get_markup()

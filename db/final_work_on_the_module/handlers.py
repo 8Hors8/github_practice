@@ -2,7 +2,7 @@
     Модуль для обработки команд и сообщений Telegram-бота.
     Содержит классы и функции для взаимодействия с пользователями.
 """
-import bot_msg, btn_text, utils
+import bot_msg, btn_text
 from buttons import start_button
 from utils import GameUtils
 
@@ -12,10 +12,8 @@ class Handlers:
         Класс для настройки и обработки команд Telegram-бота.
 
         Attributes:
-            bot (telebot.TeleBot): Объект бота для взаимодействия с Telegram API.
-            db (Database): Объект для взаимодействия с базой данных.
-            user_model (User): Модель для работы с пользователями.
-            lesson_model (Lesson): Модель для работы с уроками.
+        bot (telebot.TeleBot): Объект бота для взаимодействия с Telegram API.
+        game_utils (GameUtils): Утилиты для работы с игровыми функциями.
     """
 
     def __init__(self, bot):
@@ -44,7 +42,23 @@ class Handlers:
         # обработчик кнопки btn_text.BTN_STAR_GEME
         @self.bot.message_handler(func=lambda message: message.text == btn_text.BTN_STAR_GEME)
         def start_geme(message):
+            """
+                Обработка нажатия кнопки BTN_STAR_GEME.
+
+                :param message: Сообщение от пользователя.
+                :type message: telebot.types.Message
+            """
             self.game_utils.get_user_name(message)
+
+        @self.bot.message_handler(func=lambda message: True)
+        def all_messages(message):
+            """
+                Обработка всех входящих сообщений.
+
+                :param message: Сообщение от пользователя.
+                :type message: telebot.types.Message
+            """
+            self.handle_all_messages(message)
 
     def handle_start(self, message):
         """
@@ -65,4 +79,15 @@ class Handlers:
         chat_id = message.chat.id
         self.bot.send_message(chat_id, bot_msg.MSG_HELP)
 
+    def handle_all_messages(self, message):
+        """
+            Обработка всех входящих сообщений.
 
+            Отправляет пользователю сообщение о том, что сессия прервалась.
+
+            :param message: Сообщение от пользователя.
+            :type message: telebot.types.Message
+        """
+        chat_id = message.chat.id
+        self.bot.send_message(chat_id, 'Сессия прервалась нажмите на кнопку',
+                              reply_markup=start_button())
