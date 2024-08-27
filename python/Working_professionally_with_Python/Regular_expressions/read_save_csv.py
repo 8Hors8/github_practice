@@ -28,7 +28,7 @@ def read_csv():
     return contacts_list
 
 
-def seve_csv(contacts_list):
+def save_csv(contacts_list):
     """
         Сохраняет список контактов в CSV файл.
 

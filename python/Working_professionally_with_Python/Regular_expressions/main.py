@@ -12,7 +12,7 @@
     при этом дополняя данные, если они присутствуют в других записях.
 """
 import re
-import read_seve_csv
+import read_save_csv
 
 
 def format_data():
@@ -30,9 +30,9 @@ def format_data():
         4. Сохраняет отформатированные данные обратно в CSV файл с помощью функции `seve_csv`.
     """
 
-    contat_list = read_seve_csv.read_csv()
+    contact_list = read_save_csv.read_csv()
     correct_contacts = []
-    for cotat in contat_list[1:]:
+    for cotat in contact_list[1:]:
         format_correct_contacts = []
         full_name_flag = 0
         for index, el in enumerate(cotat):
@@ -63,8 +63,8 @@ def format_data():
         correct_contacts.append(format_correct_contacts)
 
     data_to_write = merge_contacts(correct_contacts)
-    data_to_write = contat_list[:1] + data_to_write
-    read_seve_csv.seve_csv(data_to_write)
+    data_to_write = contact_list[:1] + data_to_write
+    read_save_csv.save_csv(data_to_write)
 
 
 def format_phone(phone):
