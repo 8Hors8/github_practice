@@ -41,7 +41,7 @@ def fetch_and_filter_news_by_keywords(keywords: list, num_pages: int, search_in_
                     articles_found.append((date_[0], title, link))
 
             elif any(keyword.lower() in title.lower() for keyword in keywords):
-                articles_found.append((date_, title, link))
+                articles_found.append((date_[0], title, link))
 
     for date, title, link in articles_found:
         print(date, title, link)
