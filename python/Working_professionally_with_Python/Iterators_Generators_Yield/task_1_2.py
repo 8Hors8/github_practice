@@ -1,6 +1,7 @@
 """Задание 1"""
 
 
+
 class FlatIterator:
 
     def __init__(self, list_of_list):
@@ -33,7 +34,6 @@ class FlatIterator:
                 return item
 
         raise StopIteration
-
 
 def test_1():
     list_of_lists_1 = [
