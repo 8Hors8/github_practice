@@ -26,7 +26,7 @@ class YandexDiskApi:
         Инициализация объекта класса YandexDiskApi.
 
         Args:
-            token_yand (str): Токен OAuth для доступа к API Яндекс.Диска.
+            token_yandex (str): Токен OAuth для доступа к API Яндекс.Диска.
         """
         self.token = token_yandex
         self.name_folder = None

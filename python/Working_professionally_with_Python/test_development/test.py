@@ -81,9 +81,11 @@ class TestAddDocument(unittest.TestCase):
         self.assertEqual(get_name("311 020203"), 'Александр Пушкин')
         self.assertEqual(get_directory("311 020203"), 'Полка под номером 3')
 
+
 # Задание №2
 
 class TestYandexDiskApi(unittest.TestCase):
+    """Тесты для класса YandexDiskApi"""
 
     def setUp(self):
         """Подготовка к тестам, создание объекта API с тестовым токеном."""
